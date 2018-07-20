@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
 
 void hangmanGame(char *word)
 {
-    int games = 0, wins = 0, loss = 0, playing = 1, misses = 0, hits = 0;
+    int games = 0, wins = 0, loss = 0, playing = 1, misses = 0, hits = 0, oddMarks = 0;
     unsigned long  wordLength = strlen(word);
     char *input = NULL, *mark, found, valid = 0;
     float average = 0.0;
@@ -62,7 +62,15 @@ void hangmanGame(char *word)
 
     for (int i = 0; i < wordLength; i++)
     {
-        mark[i] = 0;
+        if (ispunct(word[i]))
+        {
+            mark[i] = word[i];
+            oddMarks++;
+        }
+        else
+        {
+            mark[i] = 0;
+        }
     }
 
     printf("Game: %d Win(s): %d Loss(es): %d Average score: %.1f\n", games, wins, loss, average);
@@ -123,7 +131,7 @@ void hangmanGame(char *word)
         }
 
         /* Check if player won */
-        if (hits == wordLength)
+        if (hits == (wordLength - oddMarks))
         {
             printf("%s\nYou... Won! You missed %d\n", word, misses);
             average += ((float) misses / (float) games);
@@ -290,7 +298,7 @@ char wordValidation(char *input)
 
     for (int i = 0; i < strlen(input); i++)
     {
-        if (isalpha(input[i]))
+        if (isalpha(input[i]) || ispunct(input[i]))
         {
             valid = 1;
         }
