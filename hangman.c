@@ -29,6 +29,8 @@ void load(int *games, int *wins, int *loss, float *average);
 char wordValidation(char *word);
 /* Validate user input */
 char inputValidation(char *character);
+/* Print the hangman stick guy */
+void printStickGuy(int misses);
 
 int main(int argc, char *argv[])
 {
@@ -79,6 +81,8 @@ void hangmanGame(char *word)
     {
         while (!valid)
         {
+            printStickGuy(misses);
+
             printf("%d ", misses);
 
             /* print out number of slots for hidden word */
@@ -125,6 +129,7 @@ void hangmanGame(char *word)
         /* Check if player lost */
         if (misses == 6)
         {
+            printStickGuy(misses);
             printf("%s\nYou Lost...\n", word);
             loss++;
             playing = 0;
@@ -328,4 +333,93 @@ char inputValidation(char *character)
     }
 
     return valid;
+}
+
+void printStickGuy(int misses)
+{
+    switch(misses)
+    {
+        case(0):
+        {
+            printf("______\n|    |\n");
+            printf("|\n");
+            printf("|\n");
+            printf("|\n");
+            printf("|\n");
+            printf("|\n");
+            printf("|________\n");
+            break;
+        }
+        case(1):
+        {
+            printf("______\n");
+            printf("|    |\n");
+            printf("|    O\n");
+            printf("|\n");
+            printf("|\n");
+            printf("|________\n");
+        
+            break;
+        }
+        case(2):
+        {
+            printf("______\n");
+            printf("|    |\n");
+            printf("|    O\n");
+            printf("|    |\n");
+            printf("|    |\n");
+            printf("|\n");
+            printf("|________\n");
+        
+            break;
+        }
+        case(3):
+        {
+            printf("______\n");
+            printf("|    |\n");
+            printf("|    O\n");
+            printf("|   /|\n");
+            printf("|    |\n");
+            printf("|\n");
+            printf("|________\n");
+        
+            break;
+        }
+        case(4):
+        {
+            printf("______\n");
+            printf("|    |\n");
+            printf("|    O\n");
+            printf("|   /|\\\n");
+            printf("|    |\n");
+            printf("|\n");
+            printf("|________\n");
+        
+            break;
+        }
+        case(5):
+        {
+            printf("______\n");
+            printf("|    |\n");
+            printf("|    O\n");
+            printf("|   /|\\\n");
+            printf("|    |\n");
+            printf("|   /\n");
+            printf("|________\n");
+        
+            break;
+        }
+        case(6):
+        {
+            printf("______\n");
+            printf("|    |\n");
+            printf("|    O\n");
+            printf("|   /|\\\n");
+            printf("|    |\n");
+            printf("|   / \\\n");
+            printf("|________\n");
+        
+            break;
+        }
+    }
 }
