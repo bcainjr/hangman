@@ -10,6 +10,7 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
+#include <ctype.h>
 
 #define FILEWORDS ".words"
 #define FILEHANGMAN ".hangman"
@@ -17,28 +18,27 @@
 /* Plays the game loop */
 void hangmanGame(char *word);
 /* Determine file to use and grab word to use in game */
-char *readFile(int const argc, char *argv[]);
+void readFile(int const argc, char *argv[], char *fileInput);
 /* Count number of lines in a file */
-char countLines(char const *fileName);
+unsigned int countLines(char const *fileName);
 /* Save player stats to .hangman */
 void save(int *games, int *wins, int *loss, float *average);
 /* Trys to load player stats from .hangman */
 void load(int *games, int *wins, int *loss, float *average);
+/* Validate words in File */
+char wordValidation(char *word);
+/* Validate user input */
+char inputValidation(char *character);
 
 int main(int argc, char *argv[])
 {
-    char *fileInput;
+    char fileInput[34] = { 0 };
 
-
-    fileInput = readFile(argc, argv);
-
-    /* Validate word */
+    readFile(argc, argv, fileInput);
 
     printf("%s\n", fileInput);
-    if (strlen(fileInput) <= 34)
-    {
-        hangmanGame(fileInput);
-    }
+
+    hangmanGame(fileInput);
 
     return 0;
 }
@@ -47,10 +47,10 @@ void hangmanGame(char *word)
 {
     int games = 0, wins = 0, loss = 0, playing = 1, misses = 0, hits = 0;
     unsigned long  wordLength = strlen(word);
-    char *input = NULL, *mark, found;
+    char *input = NULL, *mark, found, valid = 0;
     float average = 0.0;
     /* size_t is unsigned int */
-    size_t size;
+    size_t size = 0;
 
     load(&games, &wins, &loss, &average);
 
@@ -58,40 +58,52 @@ void hangmanGame(char *word)
     games++;
 
     /* Allocate enough space to mark guessed letter */
-    mark = (char *) malloc(wordLength);
+    mark = (char *) malloc(wordLength + 1);
+
+    for (int i = 0; i < wordLength; i++)
+    {
+        mark[i] = 0;
+    }
 
     printf("Game: %d Win(s): %d Loss(es): %d Average score: %.1f\n", games, wins, loss, average);
 
     while (playing)
     {
-        printf("%d ", misses);
-
-        /* print out number of slots for hidden word */
-        for (int i = 0; i < wordLength; i++)
+        while (!valid)
         {
-            if (mark[i] == 1)
+            printf("%d ", misses);
+
+            /* print out number of slots for hidden word */
+            for (int i = 0; i < wordLength; i++)
             {
-                printf("%c", word[i]);
+                if (mark[i] == word[i])
+                {
+                    printf("%c", word[i]);
+                }
+                else
+                {
+                    printf("_");
+                }
             }
-            else
-            {
-                printf("_");
-            }
+
+            printf(": ");
+
+            
+            /* Validate user input */
+            getline(&input, &size, stdin);
+            input[strlen(input) - 1] = '\0';
+            valid = inputValidation(input);            
         }
 
-        printf(": ");
-
-        getline(&input, &size, stdin);
-        
-        /* Validate user input */
+        valid = 0;
 
         /* Check if guess is contained in the word */
         found = 0;
         for (int i = 0; i < wordLength; i++)
         {
-            if (*input == word[i])
+            if (*input == word[i] && *input != mark[i])
             {
-                mark[i] = 1;
+                mark[i] = word[i];
                 hits++;
                 found = 1;
             }
@@ -127,11 +139,12 @@ void hangmanGame(char *word)
     free(input);
 }
 
-char countLines(char const *fileName)
+unsigned int countLines(char const *fileName)
 {
     FILE *pWords;
-    char lines = 0, *line = NULL;
-    size_t size;
+    char *line = NULL;
+    size_t size = 0;
+    unsigned int lines = 0;
 
     pWords = fopen(fileName, "r");
 
@@ -141,16 +154,18 @@ char countLines(char const *fileName)
     }
 
     fclose(pWords);
+    free(line);
 
     return lines;
 }
 
-char *readFile(int const argc, char *argv[])
+void readFile(int const argc, char *argv[], char *fileInput)
 {
     FILE *pFile;
-    char *input = NULL, opened = 0, *fileName;
-    size_t size;
-    int randLine, lines;
+    char *input = NULL, opened = 0, *fileName, valid = 0, try = 0;
+    size_t size = 0;
+    int randLine = 0;
+    unsigned int lines;
 
     srand(time(NULL));
 
@@ -167,7 +182,8 @@ char *readFile(int const argc, char *argv[])
         pFile = fopen(argv[1], "r");
         if (pFile)
         {
-            fileName = argv[1];
+            fileName = (char *) malloc(strlen(argv[1]));
+            strcpy(fileName, argv[1]);
             opened = 1;
         }
     }
@@ -184,27 +200,49 @@ char *readFile(int const argc, char *argv[])
             exit(2);
         }
 
-        fileName = (char *) malloc(strlen(FILEWORDS));
+        fileName = (char *) malloc(strlen(FILEWORDS) + 1);
         strcpy(fileName , FILEWORDS);
     }
 
-    lines = countLines(fileName);
-    randLine = (rand() % lines) + 1;
-
-    if (pFile)
+    /* Continue to check for valid word to use */
+    while (!valid)
     {
+        lines = countLines(fileName);
+        randLine = (rand() % (lines - randLine)) + 1;
+        printf("rand num = %d lines = %d\n", randLine, lines);
+        /* track and test of total trys of invalid guesses */
+        if (try == 2)
+        {
+            printf("Too many invalid words, correct word file.\n");
+            printf("Words must only contain letters and no longer than 34 characters\n");
+            /* Exit with 4 for to many invalid words */
+            exit(4);
+        }
+        try++;
+
         for (int i = 0; i < randLine; i++)
         {
             getline(&input, &size, pFile);
             input[strlen(input) - 1] = '\0';
+        }
 
-            /* Validate word if fail quit? */
+        /* Validate word in file */
+        valid = wordValidation(input);
+    }
+    
+    strcpy(fileInput, input);
+
+    for (int i = 0; i < strlen(fileInput); i++)
+    {
+        if (isalpha(fileInput[i]))
+        {
+            fileInput[i] = tolower(fileInput[i]);
         }
     }
 
     free(fileName);
+    free(input);
     fclose(pFile);
-    return input;
 }
 
 void save(int *games, int *wins, int *loss, float *average)
@@ -237,4 +275,49 @@ void load(int *games, int *wins, int *loss, float *average)
         fclose(pFile);
     }
 
+}
+
+char wordValidation(char *input)
+{
+    char valid = 0;
+
+    if (strlen(input) > 34)
+    {
+        printf("No word may be longer then 34 characters.\n");
+        /* Exit with 3 for word to long */
+        exit(3);
+    }
+
+    for (int i = 0; i < strlen(input); i++)
+    {
+        if (isalpha(input[i]))
+        {
+            valid = 1;
+        }
+        else
+        {
+            valid = 0;
+            break;
+        }
+    }
+
+    return valid;
+}
+
+char inputValidation(char *character)
+{
+    char valid;
+
+    if (strlen(character) == 1 && isalpha(*character))
+    {
+        *character = tolower(*character);
+        valid = 1;
+    }
+    else
+    {
+        printf("That is not valid input, enter 1 character.\n");
+        valid = 0;
+    }
+
+    return valid;
 }
