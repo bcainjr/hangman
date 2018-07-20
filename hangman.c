@@ -19,7 +19,11 @@ void hangmanGame(char *word);
 /* Determine file to use and grab word to use in game */
 char *readFile(int const argc, char *argv[]);
 /* Count number of lines in a file */
-char countLines(void);
+char countLines(char const *fileName);
+/* Save player stats to .hangman */
+void save(int *games, int *wins, int *loss, float *average);
+/* Trys to load player stats from .hangman */
+void load(int *games, int *wins, int *loss, float *average);
 
 int main(int argc, char *argv[])
 {
@@ -44,13 +48,19 @@ void hangmanGame(char *word)
     int games = 0, wins = 0, loss = 0, playing = 1, misses = 0, hits = 0;
     unsigned long  wordLength = strlen(word);
     char *input = NULL, *mark, found;
-    double average = 0.0;
+    float average = 0.0;
     /* size_t is unsigned int */
     size_t size;
 
+    load(&games, &wins, &loss, &average);
+
+    /* Increment games played */
+    games++;
+
+    /* Allocate enough space to mark guessed letter */
     mark = (char *) malloc(wordLength);
 
-    printf("Game: %d Wins: %d Losses: %d Average score: %.1f\n", games, wins, loss, average);
+    printf("Game: %d Win(s): %d Loss(es): %d Average score: %.1f\n", games, wins, loss, average);
 
     while (playing)
     {
@@ -93,9 +103,10 @@ void hangmanGame(char *word)
         }
 
         /* Check if player lost */
-        if (misses == 5)
+        if (misses == 6)
         {
             printf("%s\nYou Lost...\n", word);
+            loss++;
             playing = 0;
         }
 
@@ -103,22 +114,26 @@ void hangmanGame(char *word)
         if (hits == wordLength)
         {
             printf("%s\nYou... Won! You missed %d\n", word, misses);
+            average += ((float) misses / (float) games);
+            wins++;
             playing = 0;
         }
 
     }
 
+    save(&games, &wins, &loss, &average);
+
     free(mark);
     free(input);
 }
 
-char countLines(void)
+char countLines(char const *fileName)
 {
     FILE *pWords;
     char lines = 0, *line = NULL;
     size_t size;
 
-    pWords = fopen(FILEWORDS, "r");
+    pWords = fopen(fileName, "r");
 
     while (getline(&line, &size, pWords) != -1)
     {
@@ -133,7 +148,7 @@ char countLines(void)
 char *readFile(int const argc, char *argv[])
 {
     FILE *pFile;
-    char *input = NULL, opened = 0;
+    char *input = NULL, opened = 0, *fileName;
     size_t size;
     int randLine, lines;
 
@@ -150,9 +165,9 @@ char *readFile(int const argc, char *argv[])
     if (argc == 2)
     {
         pFile = fopen(argv[1], "r");
-        printf("Enter first file open try\n");
         if (pFile)
         {
+            fileName = argv[1];
             opened = 1;
         }
     }
@@ -161,32 +176,65 @@ char *readFile(int const argc, char *argv[])
     {
         pFile = fopen(FILEWORDS, "r");
 
-        if (pFile == NULL)
+        if (!pFile)
         {
             printf("No file could be opened.\n");
+            printf("Make sure .words is available or pass a file name.\n");
             /* Could not open any file to read words */
             exit(2);
         }
+
+        fileName = (char *) malloc(strlen(FILEWORDS));
+        strcpy(fileName , FILEWORDS);
     }
 
-    lines = countLines();
-    printf("lines %d\n", lines);
-    
+    lines = countLines(fileName);
     randLine = (rand() % lines) + 1;
-    printf("%d\n", randLine);
 
-    if (pFile != NULL)
+    if (pFile)
     {
         for (int i = 0; i < randLine; i++)
         {
             getline(&input, &size, pFile);
             input[strlen(input) - 1] = '\0';
-            printf("%s\n", input);
 
             /* Validate word if fail quit? */
         }
     }
 
+    free(fileName);
     fclose(pFile);
     return input;
+}
+
+void save(int *games, int *wins, int *loss, float *average)
+{
+    FILE *pFile;
+    
+    pFile = fopen(FILEHANGMAN, "w");
+
+    fprintf(pFile, "%d\n", *games);
+    fprintf(pFile, "%d\n", *wins);
+    fprintf(pFile, "%d\n", *loss);
+    fprintf(pFile, "%f\n", *average);
+
+    fclose(pFile);
+}
+
+void load(int *games, int *wins, int *loss, float *average)
+{
+    FILE *pFile;
+
+    pFile = fopen(FILEHANGMAN, "r");
+
+    if(pFile)
+    {
+        fscanf(pFile, "%d", games);
+        fscanf(pFile, "%d", wins);
+        fscanf(pFile, "%d", loss);
+        fscanf(pFile, "%f", average);
+
+        fclose(pFile);
+    }
+
 }
