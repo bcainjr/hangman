@@ -22,9 +22,9 @@ void readFile(int const argc, char *argv[], char *fileInput);
 /* Count number of lines in a file */
 unsigned int countLines(char const *fileName);
 /* Save player stats to .hangman */
-void save(int *games, int *wins, int *loss, float *average);
+void save(int *games, int *wins, int *loss, float *average, int *streak, int *lStreak, double *tTime, double *aTime);
 /* Trys to load player stats from .hangman */
-void load(int *games, int *wins, int *loss, float *average);
+void load(int *games, int *wins, int *loss, float *average, int *streak, int *lStreak, double *tTime, double *aTime);
 /* Validate words in File */
 char wordValidation(char *word);
 /* Validate user input */
@@ -48,13 +48,16 @@ int main(int argc, char *argv[])
 void hangmanGame(char *word)
 {
     int games = 0, wins = 0, loss = 0, playing = 1, misses = 0, hits = 0, oddMarks = 0;
+    int streak = 0, longestStreak = 0;
     unsigned long  wordLength = strlen(word);
     char *input = NULL, *mark, found, valid = 0;
+    double totalTime = 0.0, averageTime = 0.0;
     float average = 0.0;
     /* size_t is unsigned int */
     size_t size = 0;
+    time_t begin, end;
 
-    load(&games, &wins, &loss, &average);
+    load(&games, &wins, &loss, &average, &streak, &longestStreak, &totalTime, &averageTime);
 
     /* Increment games played */
     games++;
@@ -76,9 +79,12 @@ void hangmanGame(char *word)
     }
 
     printf("Game: %d Win(s): %d Loss(es): %d Average score: %.1f\n", games, wins, loss, average);
+    printf("Total Time Played: %.2f Average Time: %.2f Longest Win Streak: %d\n", totalTime, averageTime, longestStreak);
 
     while (playing)
     {
+        begin = time(NULL);
+
         while (!valid)
         {
             printStickGuy(misses);
@@ -133,6 +139,7 @@ void hangmanGame(char *word)
             printf("%s\nYou Lost...\n", word);
             loss++;
             playing = 0;
+            streak = 0;
         }
 
         /* Check if player won */
@@ -142,11 +149,20 @@ void hangmanGame(char *word)
             average += ((float) misses / (float) games);
             wins++;
             playing = 0;
+            
+            if (longestStreak < ++streak)
+            {
+                longestStreak = streak;
+            }
         }
 
     }
 
-    save(&games, &wins, &loss, &average);
+    end = time(NULL);
+    totalTime += difftime(end, begin);
+    averageTime += (totalTime / (double) games);
+
+    save(&games, &wins, &loss, &average, &streak, &longestStreak, &totalTime, &averageTime);
 
     free(mark);
     free(input);
@@ -258,7 +274,7 @@ void readFile(int const argc, char *argv[], char *fileInput)
     fclose(pFile);
 }
 
-void save(int *games, int *wins, int *loss, float *average)
+void save(int *games, int *wins, int *loss, float *average, int *streak, int *lStreak, double *tTime, double *aTime)
 {
     FILE *pFile;
     
@@ -268,11 +284,15 @@ void save(int *games, int *wins, int *loss, float *average)
     fprintf(pFile, "%d\n", *wins);
     fprintf(pFile, "%d\n", *loss);
     fprintf(pFile, "%f\n", *average);
+    fprintf(pFile, "%d\n", *streak);
+    fprintf(pFile, "%d\n", *lStreak);
+    fprintf(pFile, "%lf\n", *tTime);
+    fprintf(pFile, "%lf\n", *aTime);
 
     fclose(pFile);
 }
 
-void load(int *games, int *wins, int *loss, float *average)
+void load(int *games, int *wins, int *loss, float *average, int *streak, int *lStreak, double *tTime, double *aTime)
 {
     FILE *pFile;
 
@@ -284,6 +304,10 @@ void load(int *games, int *wins, int *loss, float *average)
         fscanf(pFile, "%d", wins);
         fscanf(pFile, "%d", loss);
         fscanf(pFile, "%f", average);
+        fscanf(pFile, "%d", streak);
+        fscanf(pFile, "%d", lStreak);
+        fscanf(pFile, "%lf", tTime);
+        fscanf(pFile, "%lf", aTime);
 
         fclose(pFile);
     }
