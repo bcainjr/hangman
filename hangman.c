@@ -1,9 +1,10 @@
 /*
-* TDQC5
-* Bruce Cain
-*
-* Create the game hangman for project 1.
-*/
+ * TDQC5
+ * Bruce Cain
+ *
+ * Create the game hangman for project 1.
+ *
+ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,48 +17,90 @@
 #define FILEHANGMAN ".hangman"
 
 /* Plays the game loop */
-void hangmanGame(char *word);
-/* Determine file to use and grab word to use in game */
-void readFile(int const argc, char *argv[], char *fileInput);
-/* Count number of lines in a file */
-unsigned int countLines(char const *fileName);
-/* Save player stats to .hangman */
-void save(int *games, int *wins, int *loss, float *average, int *streak, int *lStreak, double *tTime, double *aTime);
-/* Trys to load player stats from .hangman */
-void load(int *games, int *wins, int *loss, float *average, int *streak, int *lStreak, double *tTime, double *aTime);
-/* Validate words in File */
-char wordValidation(char *word);
-/* Validate user input */
-char inputValidation(char *character);
-/* Print the hangman stick guy */
-void printStickGuy(int misses);
+void            hangmanGame(
+    char *word);
 
-int main(int argc, char *argv[])
+/* Determine file to use and grab word to use in game */
+void            readFile(
+    int const argc,
+    char *argv[],
+    char *fileInput);
+
+/* Count number of lines in a file */
+unsigned int    countLines(
+    char const *fileName);
+
+/* Save player stats to .hangman */
+void            save(
+    int *games,
+    int *wins,
+    int *loss,
+    float *average,
+    int *streak,
+    int *lStreak,
+    double *tTime,
+    double *aTime);
+
+/* Trys to load player stats from .hangman */
+void            load(
+    int *games,
+    int *wins,
+    int *loss,
+    float *average,
+    int *streak,
+    int *lStreak,
+    double *tTime,
+    double *aTime);
+
+/* Validate words in File */
+char            wordValidation(
+    char *word);
+
+/* Validate user input */
+char            inputValidation(
+    char *character);
+
+/* Print the hangman stick guy */
+void            printStickGuy(
+    int misses);
+
+int
+main(
+    int argc,
+    char *argv[])
 {
     char fileInput[34] = { 0 };
-
     readFile(argc, argv, fileInput);
-
-    printf("%s\n", fileInput);
-
     hangmanGame(fileInput);
 
     return 0;
 }
 
-void hangmanGame(char *word)
+void
+hangmanGame(
+    char *word)
 {
-    int games = 0, wins = 0, loss = 0, playing = 1, misses = 0, hits = 0, oddMarks = 0;
-    int streak = 0, longestStreak = 0;
-    unsigned long  wordLength = strlen(word);
-    char *input = NULL, *mark, found, valid = 0;
-    double totalTime = 0.0, averageTime = 0.0;
-    float average = 0.0;
-    /* size_t is unsigned int */
-    size_t size = 0;
-    time_t begin, end;
+    /* 
+     * hangmanGame function is used to play through the hangman game.
+     *
+     * char *word argument brings in the word the player is to guess.
+     *
+     */
 
-    load(&games, &wins, &loss, &average, &streak, &longestStreak, &totalTime, &averageTime);
+    int             games = 0, wins = 0, loss = 0, playing = 1,
+                    misses = 0, hits = 0, oddMarks = 0;
+    int             streak = 0, longestStreak = 0;
+    unsigned long   wordLength = strlen(word);
+    char           *input = NULL, *mark, found, valid = 0;
+    double          totalTime = 0.0, averageTime = 0.0;
+    float           average = 0.0;
+
+    /* size_t is unsigned int */
+    size_t          size = 0;
+    time_t          begin, end;
+
+    load(&games, &wins, &loss, &average, &streak, &longestStreak, &totalTime,
+         &averageTime);
 
     /* Increment games played */
     games++;
@@ -78,8 +121,11 @@ void hangmanGame(char *word)
         }
     }
 
-    printf("Game: %d Win(s): %d Loss(es): %d Average score: %.1f\n", games, wins, loss, average);
-    printf("Total Time Played: %.2f Average Time: %.2f Longest Win Streak: %d\n", totalTime, averageTime, longestStreak);
+    printf("Game: %d Win(s): %d Loss(es): %d Average score: %.1f\n", games,
+           wins, loss, average);
+    printf
+        ("Total Time Played: %.2f Average Time: %.2f Longest Win Streak: %d\n",
+         totalTime, averageTime, longestStreak);
 
     while (playing)
     {
@@ -106,11 +152,11 @@ void hangmanGame(char *word)
 
             printf(": ");
 
-            
+
             /* Validate user input */
             getline(&input, &size, stdin);
             input[strlen(input) - 1] = '\0';
-            valid = inputValidation(input);            
+            valid = inputValidation(input);
         }
 
         valid = 0;
@@ -149,7 +195,7 @@ void hangmanGame(char *word)
             average += ((float) misses / (float) games);
             wins++;
             playing = 0;
-            
+
             if (longestStreak < ++streak)
             {
                 longestStreak = streak;
@@ -162,18 +208,29 @@ void hangmanGame(char *word)
     totalTime += difftime(end, begin);
     averageTime += (totalTime / (double) games);
 
-    save(&games, &wins, &loss, &average, &streak, &longestStreak, &totalTime, &averageTime);
+    save(&games, &wins, &loss, &average, &streak, &longestStreak, &totalTime,
+         &averageTime);
 
     free(mark);
     free(input);
 }
 
-unsigned int countLines(char const *fileName)
+unsigned int
+countLines(
+    char const *fileName)
 {
-    FILE *pWords;
-    char *line = NULL;
-    size_t size = 0;
-    unsigned int lines = 0;
+    /*
+     * countLines function will count the lines in the supplied file.
+     *
+     * char const *fileName is the provide file that contains the words
+     * to be used in hangmanGame function.
+     *
+     */
+
+    FILE           *pWords;
+    char           *line = NULL;
+    size_t          size = 0;
+    unsigned int    lines = 0;
 
     pWords = fopen(fileName, "r");
 
@@ -188,13 +245,31 @@ unsigned int countLines(char const *fileName)
     return lines;
 }
 
-void readFile(int const argc, char *argv[], char *fileInput)
+void
+readFile(
+    int const argc,
+    char *argv[],
+    char *fileInput)
 {
-    FILE *pFile;
-    char *input = NULL, opened = 0, *fileName, valid = 0, try = 0;
-    size_t size = 0;
-    int randLine = 0;
-    unsigned int lines;
+    /*
+     * readFile function will read either the default file for a word
+     * or accept a filename on the command line as a agrument.
+     *
+     * int const argc is the number of command line arguments.
+     *
+     * char *argv[] is the character arrays of the command line arguments
+     * delimited by a space.
+     *
+     * char *fileInput is a pointer that will hold the word that the
+     * player guesses.
+     *
+     */
+
+    FILE           *pFile;
+    char           *input = NULL, opened = 0, *fileName, valid = 0, try = 0;
+    size_t          size = 0;
+    int             randLine = 0;
+    unsigned int    lines;
 
     srand(time(NULL));
 
@@ -216,7 +291,7 @@ void readFile(int const argc, char *argv[], char *fileInput)
             opened = 1;
         }
     }
-    
+
     if (!opened)
     {
         pFile = fopen(FILEWORDS, "r");
@@ -230,7 +305,7 @@ void readFile(int const argc, char *argv[], char *fileInput)
         }
 
         fileName = (char *) malloc(strlen(FILEWORDS) + 1);
-        strcpy(fileName , FILEWORDS);
+        strcpy(fileName, FILEWORDS);
     }
 
     /* Continue to check for valid word to use */
@@ -238,12 +313,13 @@ void readFile(int const argc, char *argv[], char *fileInput)
     {
         lines = countLines(fileName);
         randLine = (rand() % (lines - randLine)) + 1;
-        printf("rand num = %d lines = %d\n", randLine, lines);
+
         /* track and test of total trys of invalid guesses */
         if (try == 2)
         {
             printf("Too many invalid words, correct word file.\n");
-            printf("Words must only contain letters and no longer than 34 characters\n");
+            printf
+                ("Words must only contain letters and no longer than 34 characters\n");
             /* Exit with 4 for to many invalid words */
             exit(4);
         }
@@ -258,7 +334,7 @@ void readFile(int const argc, char *argv[], char *fileInput)
         /* Validate word in file */
         valid = wordValidation(input);
     }
-    
+
     strcpy(fileInput, input);
 
     for (int i = 0; i < strlen(fileInput); i++)
@@ -274,10 +350,40 @@ void readFile(int const argc, char *argv[], char *fileInput)
     fclose(pFile);
 }
 
-void save(int *games, int *wins, int *loss, float *average, int *streak, int *lStreak, double *tTime, double *aTime)
+void
+save(
+    int *games,
+    int *wins,
+    int *loss,
+    float *average,
+    int *streak,
+    int *lStreak,
+    double *tTime,
+    double *aTime)
 {
-    FILE *pFile;
-    
+    /*
+     * save function will save the player states to the .hangman file.
+     * 
+     * int *games is the number of games played.
+     *
+     * int *wins is the number of games won.
+     *
+     * int *loss is the number of games lost.
+     *
+     * float *average is the average of misses / game played.
+     *
+     * int *streak is the current win streak.
+     *
+     * int *lStreak is the longest win streak.
+     *
+     * double *tTime is the total time played.
+     *
+     * double *aTime is the average time / game played.
+     *
+     */
+
+    FILE           *pFile;
+
     pFile = fopen(FILEHANGMAN, "w");
 
     fprintf(pFile, "%d\n", *games);
@@ -292,13 +398,44 @@ void save(int *games, int *wins, int *loss, float *average, int *streak, int *lS
     fclose(pFile);
 }
 
-void load(int *games, int *wins, int *loss, float *average, int *streak, int *lStreak, double *tTime, double *aTime)
+void
+load(
+    int *games,
+    int *wins,
+    int *loss,
+    float *average,
+    int *streak,
+    int *lStreak,
+    double *tTime,
+    double *aTime)
 {
-    FILE *pFile;
+    /*
+     * load function will load all the player stats from the .hangman file.
+     * 
+     * int *games is the number of games played.
+     *
+     * int *wins is the number of games won.
+     *
+     * int *loss is the number of games lost.
+     *
+     * float *average is the average of misses / game played.
+     *
+     * int *streak is the current win streak.
+     *
+     * int *lStreak is the longest win streak.
+     *
+     * double *tTime is the total time played.
+     *
+     * double *aTime is the average time / game played.
+     *
+     */
+
+
+    FILE           *pFile;
 
     pFile = fopen(FILEHANGMAN, "r");
 
-    if(pFile)
+    if (pFile)
     {
         fscanf(pFile, "%d", games);
         fscanf(pFile, "%d", wins);
@@ -314,9 +451,19 @@ void load(int *games, int *wins, int *loss, float *average, int *streak, int *lS
 
 }
 
-char wordValidation(char *input)
+char
+wordValidation(
+    char *input)
 {
-    char valid = 0;
+    /*
+     * wordValidation validates the word chosen from either a given file or
+     * the default file.
+     *
+     * char *input is the word to be validated.
+     *
+     */
+
+    char            valid = 0;
 
     if (strlen(input) > 34)
     {
@@ -341,9 +488,19 @@ char wordValidation(char *input)
     return valid;
 }
 
-char inputValidation(char *character)
+char
+inputValidation(
+    char *character)
 {
-    char valid;
+    /*
+     * inputValidation validates the user's input.
+     *
+     * char *character is the input captured from the stdin that the
+     * user themselve entered.
+     *
+     */
+
+    char            valid;
 
     if (strlen(character) == 1 && isalpha(*character))
     {
@@ -359,91 +516,102 @@ char inputValidation(char *character)
     return valid;
 }
 
-void printStickGuy(int misses)
+void
+printStickGuy(
+    int misses)
 {
-    switch(misses)
+    /*
+     * printStickGuy will print a stick figure man depending on how many
+     * misses are counted.
+     *
+     * int misses is how many times the user incorrectly guessed a 
+     * character.
+     *
+     */
+
+    switch (misses)
     {
-        case(0):
-        {
-            printf("______\n|    |\n");
-            printf("|\n");
-            printf("|\n");
-            printf("|\n");
-            printf("|\n");
-            printf("|\n");
-            printf("|________\n");
-            break;
-        }
-        case(1):
-        {
-            printf("______\n");
-            printf("|    |\n");
-            printf("|    O\n");
-            printf("|\n");
-            printf("|\n");
-            printf("|________\n");
-        
-            break;
-        }
-        case(2):
-        {
-            printf("______\n");
-            printf("|    |\n");
-            printf("|    O\n");
-            printf("|    |\n");
-            printf("|    |\n");
-            printf("|\n");
-            printf("|________\n");
-        
-            break;
-        }
-        case(3):
-        {
-            printf("______\n");
-            printf("|    |\n");
-            printf("|    O\n");
-            printf("|   /|\n");
-            printf("|    |\n");
-            printf("|\n");
-            printf("|________\n");
-        
-            break;
-        }
-        case(4):
-        {
-            printf("______\n");
-            printf("|    |\n");
-            printf("|    O\n");
-            printf("|   /|\\\n");
-            printf("|    |\n");
-            printf("|\n");
-            printf("|________\n");
-        
-            break;
-        }
-        case(5):
-        {
-            printf("______\n");
-            printf("|    |\n");
-            printf("|    O\n");
-            printf("|   /|\\\n");
-            printf("|    |\n");
-            printf("|   /\n");
-            printf("|________\n");
-        
-            break;
-        }
-        case(6):
-        {
-            printf("______\n");
-            printf("|    |\n");
-            printf("|    O\n");
-            printf("|   /|\\\n");
-            printf("|    |\n");
-            printf("|   / \\\n");
-            printf("|________\n");
-        
-            break;
-        }
+    case (0):
+    {
+        printf("______\n|    |\n");
+        printf("|\n");
+        printf("|\n");
+        printf("|\n");
+        printf("|\n");
+        printf("|\n");
+        printf("|________\n");
+        break;
+    }
+    case (1):
+    {
+        printf("______\n");
+        printf("|    |\n");
+        printf("|    O\n");
+        printf("|\n");
+        printf("|\n");
+        printf("|________\n");
+
+        break;
+    }
+    case (2):
+    {
+        printf("______\n");
+        printf("|    |\n");
+        printf("|    O\n");
+        printf("|    |\n");
+        printf("|    |\n");
+        printf("|\n");
+        printf("|________\n");
+
+        break;
+    }
+    case (3):
+    {
+        printf("______\n");
+        printf("|    |\n");
+        printf("|    O\n");
+        printf("|   /|\n");
+        printf("|    |\n");
+        printf("|\n");
+        printf("|________\n");
+
+        break;
+    }
+    case (4):
+    {
+        printf("______\n");
+        printf("|    |\n");
+        printf("|    O\n");
+        printf("|   /|\\\n");
+        printf("|    |\n");
+        printf("|\n");
+        printf("|________\n");
+
+        break;
+    }
+    case (5):
+    {
+        printf("______\n");
+        printf("|    |\n");
+        printf("|    O\n");
+        printf("|   /|\\\n");
+        printf("|    |\n");
+        printf("|   /\n");
+        printf("|________\n");
+
+        break;
+    }
+    case (6):
+    {
+        printf("______\n");
+        printf("|    |\n");
+        printf("|    O\n");
+        printf("|   /|\\\n");
+        printf("|    |\n");
+        printf("|   / \\\n");
+        printf("|________\n");
+
+        break;
+    }
     }
 }
